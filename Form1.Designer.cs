@@ -50,19 +50,23 @@
             this.picThumb = new System.Windows.Forms.PictureBox();
             this.progressBar2 = new System.Windows.Forms.ProgressBar();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chkVolume = new System.Windows.Forms.CheckBox();
+            this.cmbSpeed = new System.Windows.Forms.ComboBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.txtFilters = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.txtTitle = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
             this.txtAuthor = new System.Windows.Forms.TextBox();
             this.label8 = new System.Windows.Forms.Label();
             this.chkLog = new System.Windows.Forms.CheckBox();
-            this.txtFilters = new System.Windows.Forms.TextBox();
-            this.label10 = new System.Windows.Forms.Label();
             this.btnLocalLoad = new System.Windows.Forms.Button();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-            this.label11 = new System.Windows.Forms.Label();
-            this.cmbSpeed = new System.Windows.Forms.ComboBox();
             this.btnVolumeDetect = new System.Windows.Forms.Button();
-            this.chkVolume = new System.Windows.Forms.CheckBox();
+            this.chkChapters = new System.Windows.Forms.CheckBox();
+            this.chkAuthor = new System.Windows.Forms.CheckBox();
+            this.chkService = new System.Windows.Forms.CheckBox();
+            this.cmbFetchers = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.numMin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numBitrate)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picThumb)).BeginInit();
@@ -71,7 +75,7 @@
             // 
             // btnTest
             // 
-            this.btnTest.Location = new System.Drawing.Point(484, 255);
+            this.btnTest.Location = new System.Drawing.Point(480, 308);
             this.btnTest.Name = "btnTest";
             this.btnTest.Size = new System.Drawing.Size(75, 40);
             this.btnTest.TabIndex = 10;
@@ -140,7 +144,7 @@
             // txtDebug
             // 
             this.txtDebug.BackColor = System.Drawing.SystemColors.Window;
-            this.txtDebug.Location = new System.Drawing.Point(12, 301);
+            this.txtDebug.Location = new System.Drawing.Point(8, 354);
             this.txtDebug.Multiline = true;
             this.txtDebug.Name = "txtDebug";
             this.txtDebug.ReadOnly = true;
@@ -151,7 +155,7 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(15, 255);
+            this.progressBar1.Location = new System.Drawing.Point(11, 308);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(461, 23);
             this.progressBar1.TabIndex = 15;
@@ -162,6 +166,7 @@
             this.txtURL.Name = "txtURL";
             this.txtURL.Size = new System.Drawing.Size(389, 20);
             this.txtURL.TabIndex = 6;
+            this.txtURL.Text = "https://www.youtube.com/watch?v=bwmSjveL3Lc";
             this.txtURL.MouseUp += new System.Windows.Forms.MouseEventHandler(this.txtURL_MouseUp);
             // 
             // label3
@@ -279,13 +284,15 @@
             // 
             // progressBar2
             // 
-            this.progressBar2.Location = new System.Drawing.Point(15, 284);
+            this.progressBar2.Location = new System.Drawing.Point(11, 337);
             this.progressBar2.Name = "progressBar2";
             this.progressBar2.Size = new System.Drawing.Size(462, 11);
             this.progressBar2.TabIndex = 26;
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.chkAuthor);
+            this.groupBox1.Controls.Add(this.chkChapters);
             this.groupBox1.Controls.Add(this.chkVolume);
             this.groupBox1.Controls.Add(this.cmbSpeed);
             this.groupBox1.Controls.Add(this.label11);
@@ -296,12 +303,57 @@
             this.groupBox1.Controls.Add(this.txtAuthor);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.picThumb);
-            this.groupBox1.Location = new System.Drawing.Point(15, 136);
+            this.groupBox1.Location = new System.Drawing.Point(15, 153);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(544, 113);
+            this.groupBox1.Size = new System.Drawing.Size(544, 149);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "MP3 Info";
+            // 
+            // chkVolume
+            // 
+            this.chkVolume.AutoSize = true;
+            this.chkVolume.Location = new System.Drawing.Point(318, 22);
+            this.chkVolume.Name = "chkVolume";
+            this.chkVolume.Size = new System.Drawing.Size(102, 17);
+            this.chkVolume.TabIndex = 33;
+            this.chkVolume.Text = "Auto Volume Fix";
+            this.chkVolume.UseVisualStyleBackColor = true;
+            this.chkVolume.CheckedChanged += new System.EventHandler(this.chkVolume_CheckedChanged);
+            // 
+            // cmbSpeed
+            // 
+            this.cmbSpeed.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbSpeed.FormattingEnabled = true;
+            this.cmbSpeed.Location = new System.Drawing.Point(354, 120);
+            this.cmbSpeed.Name = "cmbSpeed";
+            this.cmbSpeed.Size = new System.Drawing.Size(58, 21);
+            this.cmbSpeed.TabIndex = 32;
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(259, 123);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(96, 13);
+            this.label11.TabIndex = 31;
+            this.label11.Text = "Playback Speed: x";
+            // 
+            // txtFilters
+            // 
+            this.txtFilters.Location = new System.Drawing.Point(54, 120);
+            this.txtFilters.Name = "txtFilters";
+            this.txtFilters.Size = new System.Drawing.Size(199, 20);
+            this.txtFilters.TabIndex = 29;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(7, 123);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(37, 13);
+            this.label10.TabIndex = 30;
+            this.label10.Text = "Filters:";
             // 
             // txtTitle
             // 
@@ -338,29 +390,13 @@
             // chkLog
             // 
             this.chkLog.AutoSize = true;
-            this.chkLog.Location = new System.Drawing.Point(12, 469);
+            this.chkLog.Location = new System.Drawing.Point(8, 522);
             this.chkLog.Name = "chkLog";
             this.chkLog.Size = new System.Drawing.Size(203, 17);
             this.chkLog.TabIndex = 11;
             this.chkLog.Text = "Log Everything (debug info, for nerds)";
             this.chkLog.UseVisualStyleBackColor = true;
             this.chkLog.CheckedChanged += new System.EventHandler(this.chkLog_CheckedChanged);
-            // 
-            // txtFilters
-            // 
-            this.txtFilters.Location = new System.Drawing.Point(54, 83);
-            this.txtFilters.Name = "txtFilters";
-            this.txtFilters.Size = new System.Drawing.Size(199, 20);
-            this.txtFilters.TabIndex = 29;
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(7, 83);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(37, 13);
-            this.label10.TabIndex = 30;
-            this.label10.Text = "Filters:";
             // 
             // btnLocalLoad
             // 
@@ -377,49 +413,69 @@
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.Filter = "MP4 Video (*.mp4)|*.mp4|All Files (*.*)|*.*";
             // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(259, 83);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(96, 13);
-            this.label11.TabIndex = 31;
-            this.label11.Text = "Playback Speed: x";
-            // 
-            // cmbSpeed
-            // 
-            this.cmbSpeed.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbSpeed.FormattingEnabled = true;
-            this.cmbSpeed.Location = new System.Drawing.Point(354, 80);
-            this.cmbSpeed.Name = "cmbSpeed";
-            this.cmbSpeed.Size = new System.Drawing.Size(58, 21);
-            this.cmbSpeed.TabIndex = 32;
-            // 
             // btnVolumeDetect
             // 
-            this.btnVolumeDetect.Location = new System.Drawing.Point(444, 476);
+            this.btnVolumeDetect.Location = new System.Drawing.Point(439, 519);
             this.btnVolumeDetect.Name = "btnVolumeDetect";
             this.btnVolumeDetect.Size = new System.Drawing.Size(111, 20);
             this.btnVolumeDetect.TabIndex = 28;
-            this.btnVolumeDetect.Text = "Detect Volume";
+            this.btnVolumeDetect.Text = "TEST";
             this.btnVolumeDetect.UseVisualStyleBackColor = true;
             this.btnVolumeDetect.Click += new System.EventHandler(this.btnVolumeDetect_Click);
             // 
-            // chkVolume
+            // chkChapters
             // 
-            this.chkVolume.AutoSize = true;
-            this.chkVolume.Location = new System.Drawing.Point(318, 22);
-            this.chkVolume.Name = "chkVolume";
-            this.chkVolume.Size = new System.Drawing.Size(102, 17);
-            this.chkVolume.TabIndex = 33;
-            this.chkVolume.Text = "Auto Volume Fix";
-            this.chkVolume.UseVisualStyleBackColor = true;
+            this.chkChapters.AutoSize = true;
+            this.chkChapters.Checked = true;
+            this.chkChapters.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkChapters.Location = new System.Drawing.Point(10, 71);
+            this.chkChapters.Name = "chkChapters";
+            this.chkChapters.Size = new System.Drawing.Size(90, 17);
+            this.chkChapters.TabIndex = 34;
+            this.chkChapters.Text = "Add Chapters";
+            this.chkChapters.UseVisualStyleBackColor = true;
+            this.chkChapters.CheckedChanged += new System.EventHandler(this.chkChapters_CheckedChanged);
+            // 
+            // chkAuthor
+            // 
+            this.chkAuthor.AutoSize = true;
+            this.chkAuthor.Location = new System.Drawing.Point(107, 71);
+            this.chkAuthor.Name = "chkAuthor";
+            this.chkAuthor.Size = new System.Drawing.Size(156, 17);
+            this.chkAuthor.TabIndex = 35;
+            this.chkAuthor.Text = "Include Author in File Name";
+            this.chkAuthor.UseVisualStyleBackColor = true;
+            this.chkAuthor.CheckedChanged += new System.EventHandler(this.chkAuthor_CheckedChanged);
+            // 
+            // chkService
+            // 
+            this.chkService.AutoSize = true;
+            this.chkService.Location = new System.Drawing.Point(110, 133);
+            this.chkService.Name = "chkService";
+            this.chkService.Size = new System.Drawing.Size(223, 17);
+            this.chkService.TabIndex = 29;
+            this.chkService.Text = "Use 3rd Party Service to fetch Video URL";
+            this.chkService.UseVisualStyleBackColor = true;
+            this.chkService.CheckedChanged += new System.EventHandler(this.chkService_CheckedChanged);
+            // 
+            // cmbFetchers
+            // 
+            this.cmbFetchers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbFetchers.Enabled = false;
+            this.cmbFetchers.FormattingEnabled = true;
+            this.cmbFetchers.Location = new System.Drawing.Point(333, 131);
+            this.cmbFetchers.Name = "cmbFetchers";
+            this.cmbFetchers.Size = new System.Drawing.Size(166, 21);
+            this.cmbFetchers.TabIndex = 30;
+            this.cmbFetchers.SelectedIndexChanged += new System.EventHandler(this.cmbFetchers_SelectedIndexChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(567, 504);
+            this.ClientSize = new System.Drawing.Size(567, 558);
+            this.Controls.Add(this.cmbFetchers);
+            this.Controls.Add(this.chkService);
             this.Controls.Add(this.btnVolumeDetect);
             this.Controls.Add(this.btnLocalLoad);
             this.Controls.Add(this.chkLog);
@@ -494,6 +550,10 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Button btnVolumeDetect;
         private System.Windows.Forms.CheckBox chkVolume;
+        private System.Windows.Forms.CheckBox chkAuthor;
+        private System.Windows.Forms.CheckBox chkChapters;
+        private System.Windows.Forms.CheckBox chkService;
+        private System.Windows.Forms.ComboBox cmbFetchers;
     }
 }
 

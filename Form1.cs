@@ -1,6 +1,7 @@
 ﻿using Ini;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
@@ -56,7 +57,7 @@ namespace Youtube_Video_to_Audio
                 return Html;
 
             }
-            catch (Exception e)
+            catch
             {
                 return null;
             }
@@ -382,9 +383,10 @@ namespace Youtube_Video_to_Audio
 
         private void btnTest_Click(object sender, EventArgs e)
         {
-            if(File.Exists(txtURL.Text)==true && currStep==0)
+            if (File.Exists(txtURL.Text)==true && currStep==0)
             {
 
+                txtDebug.Text = "";
                 if (chkVolume.Checked == true)
                 {
                     detectVolume();
@@ -400,6 +402,7 @@ namespace Youtube_Video_to_Audio
 
             if (currStep == 0)
             {
+                txtDebug.Text = "";
                 string url = txtURL.Text;
                 Uri uri = null;
                 if (!Uri.TryCreate(url, UriKind.Absolute, out uri))
@@ -423,7 +426,25 @@ namespace Youtube_Video_to_Audio
                     return;
                 }
 
+
                 preDownload(ytid);
+
+                if (chkService.Checked == true)
+                {
+                    log("Using 3rd Party to fetch url.");
+                    ytinfo_vid[0] = fetchUrl(cmbFetchers.Text);
+
+                    if(ytinfo_vid[0]==null)
+                    {
+                        log("Something went wrong. Cannot use 3rd Party service at this time.");
+                    }
+                    else
+                    {
+                        log("Got it!");
+                    }
+                    
+                }
+
                 currStep++;
                 if(MessageBox.Show("Does everything look good?\r\n\r\nIf not, you can make changes and start where you left off.", "Continue?", MessageBoxButtons.YesNo) == DialogResult.No)
                 {
@@ -488,6 +509,8 @@ namespace Youtube_Video_to_Audio
             processFile(txtSavePath.Text + ytinfo_vid[1] + ".mp4");
 
             currStep = 0;
+            btnTest.Text = "Start";
+            log("Finished!");
 
         }
 
@@ -531,7 +554,7 @@ namespace Youtube_Video_to_Audio
 
             progressBar1.Maximum = (int)(maxFiles - 1);
             progressBar1.Value = 0;
-
+            string finalFileName = "";
             for (int i = 0; i < maxFiles; i++)
             {
                 if (currStep == 0)
@@ -548,17 +571,19 @@ namespace Youtube_Video_to_Audio
 
                 string fname = Path.GetFileNameWithoutExtension(file);
 
-                if(File.Exists(txtSavePath.Text + txtTitle.Text + " - Chapter " + num + ".mp3")==true)
+                finalFileName = (chkAuthor.Checked == true ? txtAuthor.Text + " - " : "") + txtTitle.Text + (chkChapters.Checked == true ? " - Chapter " + num : "") +".mp3";
+
+                if (File.Exists(txtSavePath.Text + finalFileName)==true)
                 {
                     log("Deleting existing file.");
-                    File.Delete(txtSavePath.Text + txtTitle.Text + " - Chapter " + num + ".mp3");
+                    File.Delete(txtSavePath.Text + finalFileName);
                 }
                 string filters = txtFilters.Text;
                 if (cmbSpeed.SelectedIndex != 5) filters += (filters!="" ? "," : "") + "atempo = " + cmbSpeed.Text;
 
                 log(filters, null, true);
 
-                string cmd = "-i \"" + file + "\" -ss " + TimeSpan.FromSeconds(outTime.TotalSeconds * i).ToString() + " -t " + outTime.ToString() + " -b:a " + numBitrate.Value.ToString() + "k" + (filters != "" ? " -filter:a \"" + filters + "\"" : "") + " -map a \"" + txtSavePath.Text + txtTitle.Text + " - Chapter " + num + ".mp3\"";
+                string cmd = "-i \"" + file + "\" -ss " + TimeSpan.FromSeconds(outTime.TotalSeconds * i).ToString() + " -t " + outTime.ToString() + " -b:a " + numBitrate.Value.ToString() + "k" + (filters != "" ? " -filter:a \"" + filters + "\"" : "") + " -map a \"" + txtSavePath.Text + finalFileName + "\"";
                 log("Command: " + cmd);
 
                 proc.StartInfo.Arguments = cmd;
@@ -617,8 +642,8 @@ namespace Youtube_Video_to_Audio
 
                 //finished converting
                 log("Adding ID3 Tags...");
-                TagLib.File tagFile = TagLib.File.Create(txtSavePath.Text + txtTitle.Text + " - Chapter " + num + ".mp3");
-                tagFile.Tag.Title = txtTitle.Text + " - Chapter " + num;
+                TagLib.File tagFile = TagLib.File.Create(txtSavePath.Text + finalFileName);
+                tagFile.Tag.Title = txtTitle.Text + (chkChapters.Checked == true ? " - Chapter " + num : "");
                 tagFile.Tag.Track = (uint)Int32.Parse(num);
 
                 if (txtAuthor.Text != "")
@@ -729,8 +754,23 @@ namespace Youtube_Video_to_Audio
                 cmbSpeed.Items.Add(spd);
             }
             cmbSpeed.SelectedIndex = 5;
-            
-            
+
+
+            DirectoryInfo di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory + "\\fetchers\\");
+            FileInfo[] files = di.GetFiles("*.fetch");
+
+            foreach (FileInfo file in files)
+            {
+                cmbFetchers.Items.Add(Path.GetFileNameWithoutExtension(file.Name.ToString()));
+            }
+            if (cmbFetchers.Items.Count > 0)
+            {
+                cmbFetchers.SelectedIndex = 0;
+            }
+            else
+            {
+                chkService.Enabled = false;
+            }
         }
 
 
@@ -898,9 +938,134 @@ namespace Youtube_Video_to_Audio
 
         }
 
+        public string fetchUrl(string service)
+        {
+            try
+            {
+                Uri uri = null;
+                if (!Uri.TryCreate(txtURL.Text, UriKind.Absolute, out uri))
+                {
+                    try
+                    {
+                        uri = new UriBuilder("http", txtURL.Text).Uri;
+                    }
+                    catch
+                    {
+                        log("Please provide a valid Youtube URL.", "Youtube Error");
+                        return null;
+                    }
+                }
+
+
+                string furl = null;
+
+                string get_url = null;
+                string post_url = null;
+
+                string[] splits = new string[3];
+
+
+                var data = new NameValueCollection();
+
+                var lines = File.ReadLines(AppDomain.CurrentDomain.BaseDirectory + "\\fetchers\\" + service + ".fetch");
+                
+                foreach (var line in lines)
+                {
+                    string nline = line.Replace("%YT_URL%", txtURL.Text).Replace("%YT_ID%", ExtractVideoIdFromUri(uri));
+                    log(nline, null, true);
+                    string[] tabbed = nline.Split(new string[] { "\t" }, StringSplitOptions.RemoveEmptyEntries);
+                    if (tabbed[0] == "GET")
+                    {
+                        get_url = tabbed[1];
+                        log("GET URL: " + tabbed[1], null, true);
+                    }
+                    else if (tabbed[0] == "POST")
+                    {
+                        post_url = tabbed[1];
+                        log("POST URL: " + tabbed[1], null, true);
+                    }
+                    else if (tabbed[0] == "BETWEEN")
+                    {
+                        splits[0] = tabbed[1];
+                        splits[1] = tabbed[2];
+                    }
+                    else if (tabbed[0] == "DATA")
+                    {
+                        data[tabbed[1]] = tabbed[2];
+                    }
+
+                }
+
+                using (var wb = new WebClient())
+                {
+                    byte[] response = null;
+
+                    if (post_url != null)
+                    {
+                        response = wb.UploadValues(post_url, "POST", data);
+                    }
+                    else if (get_url != null)
+                    {
+                        response = wb.UploadValues(get_url, "GET", data);
+                    }
+                    else
+                    {
+                        log("Failed to fetch URL!");
+                        return null;
+                    }
+
+
+
+                    string responseInString = Encoding.UTF8.GetString(response);
+                    log("Response: " + responseInString, null, true);
+                    furl = str_get_between(responseInString, splits[0], splits[1], 0);
+                    if (furl == null)
+                    {
+                        log("Failed to fetch URL!");
+                        return null;
+                    }
+                    log("Fetched URL: " + furl);
+                }
+                return furl;
+            }
+            catch (Exception ex)
+            {
+                log(ex.ToString(), "Fetcher Error");
+                return null;
+            }
+
+        }
+
         private void btnVolumeDetect_Click(object sender, EventArgs e)
         {
-            detectVolume();
+
+            
+        }
+
+        private void chkService_CheckedChanged(object sender, EventArgs e)
+        {
+            cmbFetchers.Enabled = chkService.Checked;
+            ini.IniWriteValue("options", "use_fetcher", chkService.Checked.ToString().ToLower());
+        }
+
+        private void chkVolume_CheckedChanged(object sender, EventArgs e)
+        {
+            ini.IniWriteValue("options", "volume_fix", chkVolume.Checked.ToString().ToLower());
+        }
+
+        private void chkChapters_CheckedChanged(object sender, EventArgs e)
+        {
+            ini.IniWriteValue("options", "add_chapters", chkChapters.Checked.ToString().ToLower());
+        }
+
+        private void chkAuthor_CheckedChanged(object sender, EventArgs e)
+        {
+            ini.IniWriteValue("options", "add_author", chkAuthor.Checked.ToString().ToLower());
+        }
+
+        private void cmbFetchers_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ini.IniWriteValue("options", "fetcher", cmbFetchers.Text);
         }
     }
 }
