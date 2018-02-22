@@ -1,0 +1,4 @@
+POST	https://getvideo.org/en/get_video
+BETWEEN	@@@>https://redirector.	"
+DATA	ajax	1
+DATA	url	%YT_URL%

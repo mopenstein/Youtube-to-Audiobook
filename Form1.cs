@@ -211,7 +211,8 @@ namespace Youtube_Video_to_Audio
                 string lua_lastHeader = "";
                 HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(url);
 
-                req.Referer = url;
+                Uri refURL = new Uri(url);
+                req.Referer = refURL.Host;
                 req.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11";
 
                 HttpWebResponse WebResponse = (HttpWebResponse)req.GetResponse();
@@ -381,8 +382,23 @@ namespace Youtube_Video_to_Audio
 
         private int currStep = 0;
 
+        private bool autoAccept = false;
+
         private void btnTest_Click(object sender, EventArgs e)
         {
+
+            if(txtURL.Text == "" && lstQueue.Items.Count>0)
+            {
+
+                if (autoAccept == false)
+                {
+                    if (MessageBox.Show("There are multiple items in the Queue.\r\n\r\nWould you like to auto-accept all prompts?", "Auto Accept", MessageBoxButtons.YesNo) == DialogResult.Yes) autoAccept = true;
+                }
+                
+                txtURL.Text = lstQueue.Items[0].ToString();
+                lstQueue.Items.RemoveAt(0);
+            }
+
             if (File.Exists(txtURL.Text)==true && currStep==0)
             {
 
@@ -432,6 +448,10 @@ namespace Youtube_Video_to_Audio
                 if (chkService.Checked == true)
                 {
                     log("Using 3rd Party to fetch url.");
+                    if(chkRandom.Checked==true)
+                    {
+                        cmbFetchers.SelectedIndex = new Random().Next(0, cmbFetchers.Items.Count);
+                    }
                     ytinfo_vid[0] = fetchUrl(cmbFetchers.Text);
 
                     if(ytinfo_vid[0]==null)
@@ -446,26 +466,36 @@ namespace Youtube_Video_to_Audio
                 }
 
                 currStep++;
-                if(MessageBox.Show("Does everything look good?\r\n\r\nIf not, you can make changes and start where you left off.", "Continue?", MessageBoxButtons.YesNo) == DialogResult.No)
+                if (autoAccept == true)
                 {
-                    log("User paused. Click the button again to continue.");
-                    btnTest.Text = "Continue";
-                    return;
+                    currStep = 2;
                 }
                 else
                 {
-                    currStep = 2;
+                    if (MessageBox.Show("Does everything look good?\r\n\r\nIf not, you can make changes and start where you left off.", "Continue?", MessageBoxButtons.YesNo) == DialogResult.No)
+                    {
+                        log("User paused. Click the button again to continue.");
+                        btnTest.Text = "Continue";
+                        return;
+                    }
+                    else
+                    {
+                        currStep = 2;
+                    }
                 }
             }
             else if (currStep == 1)
             {
                 currStep++;
-                if (MessageBox.Show("You have already started a session.\n\nWould you like to continue with it?", "Continue?", MessageBoxButtons.YesNo) == DialogResult.No)
+                if (autoAccept == false)
                 {
-                    log("User Canceled.");
-                    currStep = 0;
-                    btnTest.Text = "Start";
-                    return;
+                    if (MessageBox.Show("You have already started a session.\n\nWould you like to continue with it?", "Continue?", MessageBoxButtons.YesNo) == DialogResult.No)
+                    {
+                        log("User Canceled.");
+                        currStep = 0;
+                        btnTest.Text = "Start";
+                        return;
+                    }
                 }
             }
             else if (currStep == 2)
@@ -477,6 +507,7 @@ namespace Youtube_Video_to_Audio
                     downloading = false;
                     currStep = 0;
                     btnTest.Text = "Start";
+                    autoAccept = false;
                     return;
                 }
                 else
@@ -511,6 +542,13 @@ namespace Youtube_Video_to_Audio
             currStep = 0;
             btnTest.Text = "Start";
             log("Finished!");
+
+            if (lstQueue.Items.Count > 0)
+            {
+                txtURL.Text = "";
+                btnTest_Click(null, null);
+            }
+            else autoAccept = false;
 
         }
 
@@ -718,7 +756,6 @@ namespace Youtube_Video_to_Audio
             string mins = ini.IniReadValue("options", "minutes");
             string kbps = ini.IniReadValue("options", "bitrate");
 
-            string xlog = ini.IniReadValue("options", "log");
 
             if (pa != "") txtSavePath.Text = pa;
             if (ff != "") txtFFMPEG.Text = ff;
@@ -735,10 +772,20 @@ namespace Youtube_Video_to_Audio
                 if (n >= 8 && n <= 256) numBitrate.Value = n;
             }
 
-            chkLog.Checked = (xlog == "" || xlog == "false" ? false : true);
+            string tmp = ini.IniReadValue("options", "add_author");
+            chkAuthor.Checked = (tmp == "" || tmp == "false" ? false : true);
+            tmp = ini.IniReadValue("options", "log");
+            chkLog.Checked = (tmp == "" || tmp == "false" ? false : true);
+            tmp = ini.IniReadValue("options", "add_chapters");
+            chkChapters.Checked = (tmp == "" || tmp == "false" ? false : true);
+            tmp = ini.IniReadValue("options", "volume_fix");
+            chkVolume.Checked = (tmp == "" || tmp == "false" ? false : true);
+            tmp = ini.IniReadValue("options", "use_fetcher");
+            chkService.Checked = (tmp == "" || tmp == "false" ? false : true);
+            tmp = ini.IniReadValue("options", "rnd_fetcher");
+            chkRandom.Checked = (tmp == "" || tmp == "false" ? false : true);
 
             log("Options Path: " + ini.path, null, true);
-            log("Options: " + pa + ", " + ff + ", " + mins + ", " + kbps + ", " + xlog, null, true);
 
             for(int i=5;i<21;i++)
             {
@@ -759,13 +806,19 @@ namespace Youtube_Video_to_Audio
             DirectoryInfo di = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory + "\\fetchers\\");
             FileInfo[] files = di.GetFiles("*.fetch");
 
+            tmp = ini.IniReadValue("options", "fetcher");
+            int selectedFetcher = 0;
             foreach (FileInfo file in files)
             {
                 cmbFetchers.Items.Add(Path.GetFileNameWithoutExtension(file.Name.ToString()));
+                if(tmp == Path.GetFileNameWithoutExtension(file.Name.ToString()))
+                {
+                    selectedFetcher = cmbFetchers.Items.Count - 1;
+                }
             }
             if (cmbFetchers.Items.Count > 0)
             {
-                cmbFetchers.SelectedIndex = 0;
+                cmbFetchers.SelectedIndex = selectedFetcher;
             }
             else
             {
@@ -940,6 +993,16 @@ namespace Youtube_Video_to_Audio
 
         public string fetchUrl(string service)
         {
+            /* Fetcher Format
+
+            [POST,GET][tab][WEBSITE]                        //METHOD to request website url
+            [DATA][tab][NAME][tab][VALUE]                   //if post is used, you can send uploaded values
+            [BETWEEN][tab][[@@@>]START STRING][tab][[@@@>]END STRING]   //get the string between start and end string (can be called multiple times to drill down to a final result) optional '-->' forces the value onto the start or end of string
+            [DECODE]                                        //unescapes % values from final result. (can be called multiple times)
+
+
+            */
+
             try
             {
                 Uri uri = null;
@@ -962,8 +1025,9 @@ namespace Youtube_Video_to_Audio
                 string get_url = null;
                 string post_url = null;
 
-                string[] splits = new string[3];
+                string[][] splits = new string[10][];
 
+                int decode = 0, splitCnt = 0;
 
                 var data = new NameValueCollection();
 
@@ -986,12 +1050,18 @@ namespace Youtube_Video_to_Audio
                     }
                     else if (tabbed[0] == "BETWEEN")
                     {
-                        splits[0] = tabbed[1];
-                        splits[1] = tabbed[2];
+                        splits[splitCnt] = new string[2];
+                        splits[splitCnt][0] = tabbed[1];
+                        splits[splitCnt][1] = tabbed[2];
+                        splitCnt++;
                     }
                     else if (tabbed[0] == "DATA")
                     {
                         data[tabbed[1]] = tabbed[2];
+                    }
+                    else if (tabbed[0] == "DECODE")
+                    {
+                        decode++;
                     }
 
                 }
@@ -1006,7 +1076,7 @@ namespace Youtube_Video_to_Audio
                     }
                     else if (get_url != null)
                     {
-                        response = wb.UploadValues(get_url, "GET", data);
+                        response = Encoding.ASCII.GetBytes(wb.DownloadString(get_url));
                     }
                     else
                     {
@@ -1018,12 +1088,34 @@ namespace Youtube_Video_to_Audio
 
                     string responseInString = Encoding.UTF8.GetString(response);
                     log("Response: " + responseInString, null, true);
-                    furl = str_get_between(responseInString, splits[0], splits[1], 0);
+                    for (int i = 0; i < splitCnt; i++)
+                    {
+                        string a="", b="";
+                        if (splits[i][0].StartsWith("@@@>"))
+                        {
+                            splits[i][0] = splits[i][0].Substring(4);
+                            a = splits[i][0];
+                        }
+
+                        if (splits[i][1].StartsWith("@@@>"))
+                        {
+                            splits[i][1] = splits[i][1].Substring(4);
+                            b = splits[i][1];
+                        }
+
+                        furl = a + str_get_between(responseInString, splits[i][0], splits[i][1], 0) + b;
+                    }
                     if (furl == null)
                     {
                         log("Failed to fetch URL!");
                         return null;
                     }
+
+                    for(int i=0;i<decode;i++)
+                    {
+                        furl = str_unescape(furl);
+                    }
+
                     log("Fetched URL: " + furl);
                 }
                 return furl;
@@ -1066,6 +1158,22 @@ namespace Youtube_Video_to_Audio
         private void cmbFetchers_SelectedIndexChanged(object sender, EventArgs e)
         {
             ini.IniWriteValue("options", "fetcher", cmbFetchers.Text);
+        }
+
+        private void btnAddQueue_Click(object sender, EventArgs e)
+        {
+            lstQueue.Items.Add(txtURL.Text);
+            txtURL.Text = "";
+        }
+
+        private void chkRandom_CheckedChanged(object sender, EventArgs e)
+        {
+            ini.IniWriteValue("options", "rnd_fetcher", chkRandom.Checked.ToString().ToLower());
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
         }
     }
 }

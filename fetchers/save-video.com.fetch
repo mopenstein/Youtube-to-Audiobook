@@ -1,0 +1,3 @@
+POST	https://www.save-video.com/download.php?url=%YT_URL%
+BETWEEN	href="generate.php?url=	"
+DECODE
