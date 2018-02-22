@@ -1,0 +1,4 @@
+POST	https://y2mate.com/analyze/ajax
+BETWEEN	data-vlink="	"
+DATA	ajax	1
+DATA	url	%YT_URL%
